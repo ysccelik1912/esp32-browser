@@ -1,6 +1,9 @@
+const path = require('path');
+// Puppeteer yüklenmeden önce cache yolunu tanımlıyoruz
+process.env.PUPPETEER_CACHE_DIR = path.join(__dirname, '.cache');
+
 const express = require('express');
 const puppeteer = require('puppeteer');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -11,7 +14,7 @@ let page;
 async function initBrowser() {
   try {
     browser = await puppeteer.launch({
-      cacheDirectory: path.join(__dirname, '.cache'),
+      headless: 'new',
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
