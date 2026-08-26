@@ -1,5 +1,6 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -10,7 +11,7 @@ let page;
 async function initBrowser() {
   try {
     browser = await puppeteer.launch({
-      executablePath: puppeteer.executablePath(),
+      cacheDirectory: path.join(__dirname, '.cache'),
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
