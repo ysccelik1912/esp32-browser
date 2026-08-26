@@ -1,5 +1,4 @@
 const path = require('path');
-// Puppeteer yüklenmeden önce cache yolunu tanımlıyoruz
 process.env.PUPPETEER_CACHE_DIR = path.join(__dirname, '.cache');
 
 const express = require('express');
@@ -31,6 +30,7 @@ async function initBrowser() {
   }
 }
 
+// 1. ESP32'ye canlı görüntü gönderir
 app.get('/stream', async (req, res) => {
   if (!page) return res.status(500).send('Browser not ready');
   try {
@@ -42,12 +42,31 @@ app.get('/stream', async (req, res) => {
   }
 });
 
+// 2. ESP32'den gelen tıklamaları işler
 app.get('/click', async (req, res) => {
   const { x, y } = req.query;
   if (page && x && y) {
     await page.mouse.click(parseInt(x), parseInt(y));
   }
   res.send('ok');
+});
+
+// 3. YENİ: ESP32'den gelen yeni linke gider (Örn: /navigate?url=https://youtube.com)
+app.get('/navigate', async (req, res) => {
+  const { url } = req.query;
+  if (page && url) {
+    try {
+      // Eğer kullanıcı http/https yazmadıysa otomatik ekle
+      let targetUrl = url.startsWith('http') ? url : 'https://' + url;
+      await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      console.log(`Navigated to: ${targetUrl}`);
+      res.send('navigated');
+    } catch (err) {
+      res.status(500).send('Error loading URL: ' + err.message);
+    }
+  } else {
+    res.status(400).send('URL missing');
+  }
 });
 
 app.listen(PORT, async () => {
